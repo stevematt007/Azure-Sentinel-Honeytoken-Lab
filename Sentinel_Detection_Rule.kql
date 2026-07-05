@@ -1,0 +1,6 @@
+// Microsoft Sentinel Honeytoken Detection Rule
+// Detects unauthorized logins to the fake azuredbbackupadmin account
+
+SigninLogs
+| where UserPrincipalName contains "azuredbbackupadmin"
+| project TimeGenerated, UserPrincipalName, IPAddress, Location, ResultType, AppDisplayName
