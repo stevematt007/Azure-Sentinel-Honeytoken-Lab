@@ -1,6 +1,26 @@
-// Microsoft Sentinel Honeytoken Detection Rule
-// Detects unauthorized logins to the fake azuredbbackupadmin account
+// ============================================================================
+// Honeytoken Threat Hunting & Telemetry Extraction
+// Description: Isolates Honeytoken interaction, parses JSON device telemetry, 
+// and extracts localized attacker metadata for incident triage.
+// ============================================================================
 
+let HoneytokenAccount = "azuredbbackupadmin";
 SigninLogs
-| where UserPrincipalName contains "azuredbbackupadmin"
-| project TimeGenerated, UserPrincipalName, IPAddress, Location, ResultType, AppDisplayName
+| where UserPrincipalName contains HoneytokenAccount
+| extend AttackerIP = IPAddress
+| extend Country = tostring(LocationDetails.countryOrRegion)
+| extend City = tostring(LocationDetails.city)
+| extend OperatingSystem = tostring(DeviceDetail.operatingSystem)
+| extend Browser = tostring(DeviceDetail.browser)
+| extend AuthErrorContext = tostring(parse_json(AuthenticationDetails)[0].authenticationStepResultDetail)
+| project 
+    TimeGenerated, 
+    AttackerIP, 
+    Country, 
+    City, 
+    OperatingSystem, 
+    Browser, 
+    ResultType, 
+    ResultDescription, 
+    AuthErrorContext
+| sort by TimeGenerated desc
